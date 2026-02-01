@@ -28,10 +28,7 @@ LATEST_URL=$(curl -s "https://api.github.com/repos/HashShin/hashcode/releases/la
   | grep "$PLATFORM" \
   | cut -d '"' -f 4)
 
-if [ -z "$LATEST_URL" ]; then
-    echo "Failed to get download URL for platform: $PLATFORM" >&2
-    exit 1
-fi
+[ -n "$LATEST_URL" ] || { echo "Failed to get download URL for platform: $PLATFORM" >&2; exit 1; }
 
 # Prepare install dir
 mkdir -p "$INSTALL_DIR"
@@ -47,29 +44,13 @@ mv "$TMP_FILE" "$INSTALL_DIR/$BIN_NAME"
 # Update PATH for current shell
 export PATH="$INSTALL_DIR:$PATH"
 
-# Persist PATH in shell RC files with #HASHCODE comment
-for RC in ~/.profile ~/.bashrc ~/.zprofile ~/.zshrc ~/.config/fish/config.fish; do
-    [ -f "$RC" ] || continue
-    case "$RC" in
-        *.fish)
-            grep -qxF "#HASHCODE" "$RC" 2>/dev/null || echo "#HASHCODE" >> "$RC"
-            grep -qxF "set -gx PATH \$PATH $INSTALL_DIR" "$RC" 2>/dev/null || \
-                echo "set -gx PATH \$PATH $INSTALL_DIR" >> "$RC"
-            ;;
-        *)
-            grep -qxF "#HASHCODE" "$RC" 2>/dev/null || echo "#HASHCODE" >> "$RC"
-            grep -qxF "export PATH=\"$INSTALL_DIR:\$PATH\"" "$RC" 2>/dev/null || \
-                echo "export PATH=\"$INSTALL_DIR:\$PATH\"" >> "$RC"
-            ;;
-    esac
-done
+# Persist PATH in ~/.bashrc only
+RC="$HOME/.bashrc"
+grep -qxF "#HASHCODE" "$RC" 2>/dev/null || echo "#HASHCODE" >> "$RC"
+grep -qxF "export PATH=\"$INSTALL_DIR:\$PATH\"" "$RC" 2>/dev/null || \
+    echo "export PATH=\"$INSTALL_DIR:\$PATH\"" >> "$RC"
 
-[ -e ~/.profile ]  && source ~/.profile
-[ -e ~/.bashrc ]   && source ~/.bashrc
-[ -e ~/.zprofile ] && source ~/.zprofile
-[ -e ~/.zshrc ]    && source ~/.zshrc
-
-
+source ~/.bashrc
 
 clear
 cat <<'EOF'
