@@ -60,3 +60,4 @@ cat <<'EOF'
 EOF
 echo
 echo -e "Installation complete. Run: \033[1;32mhashcode\033[0m"
+source ~/.bashrc
