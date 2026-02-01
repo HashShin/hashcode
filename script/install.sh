@@ -72,4 +72,10 @@ done
 [ -f ~/.config/fish/config.fish ] && . ~/.config/fish/config.fish 2>/dev/null
 
 clear
-echo "Installation complete. Run: hashcode"
+cat <<'EOF'
+░█░█░█▀█░█▀▀░█░█░█▀▀░█▀█░█▀▄░█▀▀░
+░█▀█░█▀█░▀▀█░█▀█░█░░░█░█░█░█░█▀▀░
+░▀░▀░▀░▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀░░▀▀▀░
+EOF
+echo
+echo -e "Installation complete. Run: \033[1;32mhashcode\033[0m"
