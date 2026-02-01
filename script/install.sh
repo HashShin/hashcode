@@ -44,15 +44,11 @@ curl -L -o "$TMP_FILE" "$LATEST_URL"
 chmod +x "$TMP_FILE"
 mv "$TMP_FILE" "$INSTALL_DIR/$BIN_NAME"
 
-# Update PATH immediately for current session
-case ":$PATH:" in
-    *":$INSTALL_DIR:"*) ;;
-    *) export PATH="$INSTALL_DIR:$PATH" ;;
-esac
+# Update PATH for current shell
+export PATH="$INSTALL_DIR:$PATH"
 
 # Persist PATH in shell RC files with #HASHCODE comment
-RC_FILES=("$HOME/.profile" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.zshrc" "$HOME/.config/fish/config.fish")
-for RC in "${RC_FILES[@]}"; do
+for RC in "$HOME/.profile" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.zshrc" "$HOME/.config/fish/config.fish"; do
     [ -f "$RC" ] || continue
     case "$RC" in
         *.fish)
@@ -68,12 +64,12 @@ for RC in "${RC_FILES[@]}"; do
     esac
 done
 
-# Source the RC files immediately
-[ -f "$HOME/.profile" ] && source "$HOME/.profile"
-[ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
-[ -f "$HOME/.zprofile" ] && source "$HOME/.zprofile"
-[ -f "$HOME/.zshrc" ] && source "$HOME/.zshrc"
-[ -f "$HOME/.config/fish/config.fish" ] && source "$HOME/.config/fish/config.fish" 2>/dev/null
+# Source shell RC files (ignore errors)
+[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
+[ -f "$HOME/.zprofile" ] && . "$HOME/.zprofile"
+[ -f "$HOME/.zshrc" ] && . "$HOME/.zshrc"
+[ -f "$HOME/.config/fish/config.fish" ] && . "$HOME/.config/fish/config.fish" 2>/dev/null
 
 clear
-echo "Installation complete. Run: $BIN_NAME"
+echo "Installation complete. Run: hashcode"
