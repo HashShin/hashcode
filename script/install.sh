@@ -65,11 +65,10 @@ for RC in ~/.profile ~/.bashrc ~/.zprofile ~/.zshrc ~/.config/fish/config.fish; 
 done
 
 # Source shell RC files immediately (simplified)
-[ -f ~/.profile ] && . ~/.profile
-[ -f ~/.bashrc ] && . ~/.bashrc
-[ -f ~/.zprofile ] && . ~/.zprofile
-[ -f ~/.zshrc ] && . ~/.zshrc
-[ -f ~/.config/fish/config.fish ] && . ~/.config/fish/config.fish 2>/dev/null
+source ~/.profile
+source ~/.bashrc
+source ~/.zprofile
+source ~/.zshrc
 
 clear
 cat <<'EOF'
