@@ -1,6 +1,20 @@
 # HASHCODE
 
-Scanner for e-commerce sites (Magento, WooCommerce, Shopify, etc.) to identify platform, payment methods, and configurations.
+Scanner for e‑commerce sites (Magento, WooCommerce, Shopify, etc.) to identify platform, payment methods, and checkout behavior.
+
+## Install
+
+### Android / Linux (one command)
+
+```bash
+curl -fsSL https://install.hashcode.win | bash
+```
+
+### Windows
+
+Download the latest release:
+[https://github.com/HashShin/hashcode/releases/latest](https://github.com/HashShin/hashcode/releases/latest)
+
 
 ## Usage
 
@@ -10,11 +24,12 @@ Scanner for e-commerce sites (Magento, WooCommerce, Shopify, etc.) to identify p
    * Platform type
    * Payment methods
    * Cart and checkout functionality
-3. Results are saved in organized output files.
+3. Results are saved to organized output files.
 
 ## Features
 
 * Multi-threaded scanning
 * Platform and payment detection
 * Automatic retries on failures
-* Resume scanning from last progress
+* Resume from last progress
+
