@@ -64,11 +64,11 @@ for RC in ~/.profile ~/.bashrc ~/.zprofile ~/.zshrc ~/.config/fish/config.fish; 
     esac
 done
 
-# Source shell RC files immediately (simplified)
-[ -f ~/.profile ]  && source ~/.profile
-[ -f ~/.bashrc ]   && source ~/.bashrc
-[ -f ~/.zprofile ] && source ~/.zprofile
-[ -f ~/.zshrc ]    && source ~/.zshrc
+[ -e ~/.profile ]  && source ~/.profile
+[ -e ~/.bashrc ]   && source ~/.bashrc
+[ -e ~/.zprofile ] && source ~/.zprofile
+[ -e ~/.zshrc ]    && source ~/.zshrc
+
 
 
 clear
