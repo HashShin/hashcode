@@ -48,7 +48,7 @@ mv "$TMP_FILE" "$INSTALL_DIR/$BIN_NAME"
 export PATH="$INSTALL_DIR:$PATH"
 
 # Persist PATH in shell RC files with #HASHCODE comment
-for RC in "$HOME/.profile" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.zshrc" "$HOME/.config/fish/config.fish"; do
+for RC in ~/.profile ~/.bashrc ~/.zprofile ~/.zshrc ~/.config/fish/config.fish; do
     [ -f "$RC" ] || continue
     case "$RC" in
         *.fish)
@@ -64,12 +64,12 @@ for RC in "$HOME/.profile" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.zshrc" "$HO
     esac
 done
 
-# Source shell RC files (ignore errors)
-[ -f "$HOME/.profile" ] && . "$HOME/.profile"
-[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
-[ -f "$HOME/.zprofile" ] && . "$HOME/.zprofile"
-[ -f "$HOME/.zshrc" ] && . "$HOME/.zshrc"
-[ -f "$HOME/.config/fish/config.fish" ] && . "$HOME/.config/fish/config.fish" 2>/dev/null
+# Source shell RC files immediately (simplified)
+[ -f ~/.profile ] && . ~/.profile
+[ -f ~/.bashrc ] && . ~/.bashrc
+[ -f ~/.zprofile ] && . ~/.zprofile
+[ -f ~/.zshrc ] && . ~/.zshrc
+[ -f ~/.config/fish/config.fish ] && . ~/.config/fish/config.fish 2>/dev/null
 
 clear
 echo "Installation complete. Run: hashcode"
