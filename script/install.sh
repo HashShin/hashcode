@@ -1,63 +1,96 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-BIN_NAME="hashcode"
+APP="hashcode"
 INSTALL_DIR="$HOME/.local/bin"
 
-# Detect platform
-if [ -n "$PREFIX" ] && [ -d "$PREFIX" ]; then
-    PLATFORM="android-termux"
-else
-    OS=$(uname -s)
-    ARCH=$(uname -m)
-    case "$OS" in
-        Linux)
-            case "$ARCH" in
-                x86_64)  PLATFORM="linux-amd64" ;;
-                aarch64) PLATFORM="linux-arm64" ;;
-                *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
-            esac
-            ;;
-        *) echo "Unsupported OS: $OS" >&2; exit 1 ;;
-    esac
-fi
+MUTED='\033[0;2m'
+RED='\033[0;31m'
+ORANGE='\033[38;5;214m'
+NC='\033[0m' # No Color
 
-# Resolve latest release asset URL
-LATEST_URL=$(curl -s "https://api.github.com/repos/HashShin/hashcode/releases/latest" \
-  | grep "browser_download_url" \
-  | grep "$PLATFORM" \
-  | cut -d '"' -f 4)
+binary_path=""   # Set to local path if needed
+no_modify_path=false
 
-[ -n "$LATEST_URL" ] || { echo "Failed to get download URL for platform: $PLATFORM" >&2; exit 1; }
-
-# Prepare install dir
 mkdir -p "$INSTALL_DIR"
-TMP_FILE="$(mktemp)"
 
-# Download binary
-curl -L -o "$TMP_FILE" "$LATEST_URL"
+detect_platform() {
+    if [ -n "${PREFIX-}" ] && [ -d "$PREFIX" ]; then
+        PLATFORM="android-termux"
+    else
+        OS=$(uname -s)
+        ARCH=$(uname -m)
+        case "$OS" in
+            Linux)
+                case "$ARCH" in
+                    x86_64) PLATFORM="linux-amd64" ;;
+                    aarch64) PLATFORM="linux-arm64" ;;
+                    *) echo -e "${RED}Unsupported architecture: $ARCH${NC}" >&2; exit 1 ;;
+                esac
+                ;;
+            *) echo -e "${RED}Unsupported OS: $OS${NC}" >&2; exit 1 ;;
+        esac
+    fi
+}
 
-# Install binary
-chmod +x "$TMP_FILE"
-mv "$TMP_FILE" "$INSTALL_DIR/$BIN_NAME"
+download_latest() {
+    LATEST_URL=$(curl -s "https://api.github.com/repos/HashShin/hashcode/releases/latest" \
+        | grep "browser_download_url" \
+        | grep "$PLATFORM" \
+        | cut -d '"' -f 4)
 
-# Update PATH for current shell
-export PATH="$INSTALL_DIR:$PATH"
+    [ -n "$LATEST_URL" ] || { echo -e "${RED}Failed to get download URL for platform: $PLATFORM${NC}" >&2; exit 1; }
+}
 
-# Persist PATH in ~/.bashrc only
-RC="$HOME/.bashrc"
-grep -qxF "#HASHCODE" "$RC" 2>/dev/null || echo "#HASHCODE" >> "$RC"
-grep -qxF "export PATH=\"$INSTALL_DIR:\$PATH\"" "$RC" 2>/dev/null || \
-    echo "export PATH=\"$INSTALL_DIR:\$PATH\"" >> "$RC"
+install_binary() {
+    if [ -n "$binary_path" ]; then
+        [ -f "$binary_path" ] || { echo -e "${RED}Binary not found at $binary_path${NC}"; exit 1; }
+        cp "$binary_path" "$INSTALL_DIR/$APP"
+    else
+        TMP_FILE="$(mktemp)"
+        curl -L -o "$TMP_FILE" "$LATEST_URL"
+        chmod +x "$TMP_FILE"
+        mv "$TMP_FILE" "$INSTALL_DIR/$APP"
+    fi
+    chmod +x "$INSTALL_DIR/$APP"
+}
 
-source ~/.bashrc
+add_to_path_file() {
+    local file="$1"
+    local line="export PATH=\"$INSTALL_DIR:\$PATH\""
+    if ! grep -Fxq "$line" "$file"; then
+        echo -e "\n# HASHCODE" >> "$file"
+        echo "$line" >> "$file"
+    fi
+}
 
-clear
-cat <<'EOF'
+update_path() {
+    export PATH="$INSTALL_DIR:$PATH"
+    if [ "$no_modify_path" != "true" ]; then
+        for rc_file in "$HOME/.bashrc" "$HOME/.profile" "$HOME/.bash_profile"; do
+            [ -f "$rc_file" ] && add_to_path_file "$rc_file"
+        done
+    fi
+}
+
+print_banner() {
+    clear
+    cat <<'EOF'
 ░█░█░█▀█░█▀▀░█░█░█▀▀░█▀█░█▀▄░█▀▀░
 ░█▀█░█▀█░▀▀█░█▀█░█░░░█░█░█░█░█▀▀░
 ░▀░▀░▀░▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀░░▀▀▀░
 EOF
-echo
-echo -e "Installation complete. Run: \033[1;32mhashcode\033[0m"
-source ~/.bashrc
+    echo -e "${MUTED}Installation complete. Run: ${NC}\033[1;32mhashcode\033[0m"
+}
+
+main() {
+    detect_platform
+    if [ -z "$binary_path" ]; then
+        download_latest
+    fi
+    install_binary
+    update_path
+    print_banner
+}
+
+main
