@@ -82,7 +82,7 @@ print_banner() {
   ░▀░▀░▀░▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀░░▀▀▀░
  
 EOF
-    echo -e "${MUTED}Installation complete. Run: ${NC}\033[1;32mhashcode\033[0m"
+    echo -e " ${MUTED}Installation complete. Run: ${NC}\033[1;32mhashcode\033[0m"
   
 
 }
