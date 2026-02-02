@@ -7,12 +7,23 @@ INSTALL_DIR="$HOME/.local/bin"
 MUTED='\033[0;2m'
 RED='\033[0;31m'
 ORANGE='\033[38;5;214m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-binary_path=""   # Set to local path if needed
+binary_path=""
 no_modify_path=false
 
 mkdir -p "$INSTALL_DIR"
+
+require_downloader() {
+    if command -v curl >/dev/null 2>&1; then
+        DOWNLOADER="curl"
+    elif command -v wget >/dev/null 2>&1; then
+        DOWNLOADER="wget"
+    else
+        echo -e "${RED}Neither curl nor wget is installed${NC}" >&2
+        exit 1
+    fi
+}
 
 detect_platform() {
     if [ -n "${PREFIX-}" ] && [ -d "$PREFIX" ]; then
@@ -34,12 +45,22 @@ detect_platform() {
 }
 
 download_latest() {
-    LATEST_URL=$(curl -s "https://api.github.com/repos/HashShin/hashcode/releases/latest" \
-        | grep "browser_download_url" \
-        | grep "$PLATFORM" \
-        | cut -d '"' -f 4)
+    if [ "$DOWNLOADER" = "curl" ]; then
+        LATEST_URL=$(curl -s "https://api.github.com/repos/HashShin/hashcode/releases/latest" \
+            | grep "browser_download_url" \
+            | grep "$PLATFORM" \
+            | cut -d '"' -f 4)
+    else
+        LATEST_URL=$(wget -qO- "https://api.github.com/repos/HashShin/hashcode/releases/latest" \
+            | grep "browser_download_url" \
+            | grep "$PLATFORM" \
+            | cut -d '"' -f 4)
+    fi
 
-    [ -n "$LATEST_URL" ] || { echo -e "${RED}Failed to get download URL for platform: $PLATFORM${NC}" >&2; exit 1; }
+    [ -n "$LATEST_URL" ] || {
+        echo -e "${RED}Failed to get download URL for platform: $PLATFORM${NC}" >&2
+        exit 1
+    }
 }
 
 install_binary() {
@@ -48,7 +69,11 @@ install_binary() {
         cp "$binary_path" "$INSTALL_DIR/$APP"
     else
         TMP_FILE="$(mktemp)"
-        curl -L -o "$TMP_FILE" "$LATEST_URL"
+        if [ "$DOWNLOADER" = "curl" ]; then
+            curl -L -o "$TMP_FILE" "$LATEST_URL"
+        else
+            wget -O "$TMP_FILE" "$LATEST_URL"
+        fi
         chmod +x "$TMP_FILE"
         mv "$TMP_FILE" "$INSTALL_DIR/$APP"
     fi
@@ -76,22 +101,19 @@ update_path() {
 print_banner() {
     clear
     cat <<'EOF'
-    
+
   ░█░█░█▀█░█▀▀░█░█░█▀▀░█▀█░█▀▄░█▀▀░
   ░█▀█░█▀█░▀▀█░█▀█░█░░░█░█░█░█░█▀▀░
   ░▀░▀░▀░▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀░░▀▀▀░
- 
+
 EOF
     echo -e " ${MUTED}Installation complete. Run: ${NC}\033[1;32mhashcode\033[0m"
-  
-
 }
 
 main() {
+    require_downloader
     detect_platform
-    if [ -z "$binary_path" ]; then
-        download_latest
-    fi
+    [ -z "$binary_path" ] && download_latest
     install_binary
     update_path
     print_banner
