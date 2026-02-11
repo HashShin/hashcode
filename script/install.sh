@@ -71,7 +71,7 @@ grep -qxF "export PATH=\"$INSTALL_DIR:\$PATH\"" "$RC" 2>/dev/null || \
     echo "export PATH=\"$INSTALL_DIR:\$PATH\"" >> "$RC"
 
 source ~/.bashrc
-sleep 0.5
+exec "$SHELL" -l
 clear
 
 cat <<'EOF'
