@@ -7,7 +7,7 @@ Scanner for e‑commerce sites (Magento, WooCommerce, Shopify, etc.) to identify
 ### Android / Linux (one command)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/HashShin/hashcode/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/HashShin/hashcode/main/script/install.sh | sh
 ```
 
 ### Windows
@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/HashShin/hashcode/main/install.sh |
 Run in PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/HashShin/hashcode/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/HashShin/hashcode/main/script/install.ps1 | iex
 ```
 
 You can also download the latest binary from the
