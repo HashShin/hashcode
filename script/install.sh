@@ -71,15 +71,33 @@ curl -fL --progress-bar "$URL" -o "$TMP_BINARY" || die "Download failed: $URL"
 
 chmod +x "$TMP_BINARY"
 
-if [ -n "${TERMUX_VERSION:-}" ] && [ -n "${PREFIX:-}" ]; then
+# Termux always uses its canonical PREFIX. On regular Linux, prefer the path
+# the shell already uses so an older copy cannot shadow the new binary.
+EXISTING_BINARY="$(command -v "$BINARY" 2>/dev/null || true)"
+MANAGED_EXISTING=""
+case "$EXISTING_BINARY" in
+  "${HOME}/.local/bin/${BINARY}" | "/usr/local/bin/${BINARY}")
+    MANAGED_EXISTING="$EXISTING_BINARY"
+    ;;
+esac
+if [ -n "${PREFIX:-}" ] && [ "$EXISTING_BINARY" = "${PREFIX}/bin/${BINARY}" ]; then
+  MANAGED_EXISTING="$EXISTING_BINARY"
+fi
+
+if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
+  [ -n "${PREFIX:-}" ] || die "Termux PREFIX is not set."
   INSTALL_DIR="${PREFIX}/bin"
+elif [ -n "$MANAGED_EXISTING" ]; then
+  INSTALL_DIR="${MANAGED_EXISTING%/*}"
+  [ -w "$INSTALL_DIR" ] ||
+    die "Existing installation at ${MANAGED_EXISTING} is not writable."
 elif [ -d /usr/local/bin ] && [ -w /usr/local/bin ]; then
   INSTALL_DIR="/usr/local/bin"
 else
   INSTALL_DIR="${HOME}/.local/bin"
-  mkdir -p "$INSTALL_DIR"
 fi
 
+mkdir -p "$INSTALL_DIR"
 mv "$TMP_BINARY" "${INSTALL_DIR}/${BINARY}"
 success "Installed ${BINARY} ${TAG} to ${INSTALL_DIR}/${BINARY}"
 
@@ -87,7 +105,11 @@ case ":${PATH}:" in
   *":${INSTALL_DIR}:"*) ;;
   *)
     PROFILE="${HOME}/.profile"
-    PATH_LINE='export PATH="$HOME/.local/bin:$PATH"'
+    if [ "$INSTALL_DIR" = "${HOME}/.local/bin" ]; then
+      PATH_LINE='export PATH="$HOME/.local/bin:$PATH"'
+    else
+      PATH_LINE="export PATH=\"${INSTALL_DIR}:\$PATH\""
+    fi
     grep -qxF "$PATH_LINE" "$PROFILE" 2>/dev/null || printf '\n%s\n' "$PATH_LINE" >>"$PROFILE"
     warn "Added ${INSTALL_DIR} to PATH in ${PROFILE}; restart your terminal."
     ;;
