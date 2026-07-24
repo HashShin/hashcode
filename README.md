@@ -7,13 +7,19 @@ Scanner for e‑commerce sites (Magento, WooCommerce, Shopify, etc.) to identify
 ### Android / Linux (one command)
 
 ```bash
-curl -fsSL https://install.hashcode.win | bash
+curl -fsSL https://raw.githubusercontent.com/HashShin/hashcode/main/install.sh | sh
 ```
 
 ### Windows
 
-Download the latest release:
-[https://github.com/HashShin/hashcode/releases/latest](https://github.com/HashShin/hashcode/releases/latest)
+Run in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/HashShin/hashcode/main/install.ps1 | iex
+```
+
+You can also download the latest binary from the
+[releases page](https://github.com/HashShin/hashcode/releases/latest).
 
 
 ## Usage
@@ -32,4 +38,3 @@ Download the latest release:
 * Platform and payment detection
 * Automatic retries on failures
 * Resume from last progress
-
