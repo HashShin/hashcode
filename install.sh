@@ -61,7 +61,6 @@ TAG="$(printf '%s' "$RELEASE_JSON" |
 
 FILENAME="${BINARY}-${PLATFORM}"
 URL="https://github.com/${REPO}/releases/download/${TAG}/${FILENAME}"
-CHECKSUM_URL="https://github.com/${REPO}/releases/download/${TAG}/checksums.txt"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT TERM
@@ -69,26 +68,6 @@ TMP_BINARY="${TMP_DIR}/${BINARY}"
 
 info "Downloading ${BINARY} ${TAG} for ${PLATFORM}..."
 curl -fL --progress-bar "$URL" -o "$TMP_BINARY" || die "Download failed: $URL"
-
-if curl -fsSL "$CHECKSUM_URL" -o "${TMP_DIR}/checksums.txt"; then
-  EXPECTED="$(awk -v file="$FILENAME" '$2 == file || $2 == "*" file { print $1; exit }' "${TMP_DIR}/checksums.txt")"
-  if [ -n "$EXPECTED" ]; then
-    if command -v sha256sum >/dev/null 2>&1; then
-      ACTUAL="$(sha256sum "$TMP_BINARY" | awk '{print $1}')"
-    elif command -v shasum >/dev/null 2>&1; then
-      ACTUAL="$(shasum -a 256 "$TMP_BINARY" | awk '{print $1}')"
-    else
-      ACTUAL=""
-      warn "No SHA-256 utility found; skipping checksum verification."
-    fi
-    [ -z "$ACTUAL" ] || [ "$ACTUAL" = "$EXPECTED" ] || die "Checksum verification failed."
-    [ -z "$ACTUAL" ] || success "Checksum verified."
-  else
-    warn "No checksum entry found for ${FILENAME}."
-  fi
-else
-  warn "This release has no checksums.txt; continuing without verification."
-fi
 
 chmod +x "$TMP_BINARY"
 

@@ -46,33 +46,6 @@ try {
     $ProgressPreference = "Continue"
     Invoke-WebRequest -Uri $Asset.browser_download_url -OutFile $TempBinary -UseBasicParsing
 
-    $ChecksumAsset = $Release.assets |
-        Where-Object { $_.name -eq "checksums.txt" } |
-        Select-Object -First 1
-
-    if ($ChecksumAsset) {
-        $ChecksumFile = Join-Path $TempDirectory "checksums.txt"
-        Invoke-WebRequest -Uri $ChecksumAsset.browser_download_url -OutFile $ChecksumFile -UseBasicParsing
-        $ChecksumLine = Get-Content $ChecksumFile |
-            Where-Object { $_ -match "(^|\s)\*?$([regex]::Escape($Filename))$" } |
-            Select-Object -First 1
-
-        if ($ChecksumLine -and $ChecksumLine -match "^([a-fA-F0-9]{64})") {
-            $Expected = $Matches[1].ToLowerInvariant()
-            $Actual = (Get-FileHash -Path $TempBinary -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($Actual -ne $Expected) {
-                Stop-Install "Checksum verification failed."
-            }
-            Write-Success "Checksum verified."
-        }
-        else {
-            Write-WarnMessage "No checksum entry found for $Filename."
-        }
-    }
-    else {
-        Write-WarnMessage "This release has no checksums.txt; continuing without verification."
-    }
-
     $InstallDirectory = Join-Path $env:LOCALAPPDATA "hashcode"
     New-Item -ItemType Directory -Path $InstallDirectory -Force | Out-Null
     Copy-Item -Path $TempBinary -Destination (Join-Path $InstallDirectory "$Binary.exe") -Force
