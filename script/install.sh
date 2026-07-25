@@ -46,7 +46,13 @@ case "$OS" in
     ;;
 esac
 
-if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
+TERMUX_PREFIX="/data/data/com.termux/files/usr"
+IS_TERMUX=0
+if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "$TERMUX_PREFIX" ] || [ -d "$TERMUX_PREFIX/bin" ]; then
+  IS_TERMUX=1
+fi
+
+if [ "$IS_TERMUX" -eq 1 ]; then
   [ "$ARCH" = "arm64" ] || die "The Termux build currently supports ARM64 only."
   PLATFORM="android-termux"
 fi
@@ -84,9 +90,8 @@ if [ -n "${PREFIX:-}" ] && [ "$EXISTING_BINARY" = "${PREFIX}/bin/${BINARY}" ]; t
   MANAGED_EXISTING="$EXISTING_BINARY"
 fi
 
-if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
-  [ -n "${PREFIX:-}" ] || die "Termux PREFIX is not set."
-  INSTALL_DIR="${PREFIX}/bin"
+if [ "$IS_TERMUX" -eq 1 ]; then
+  INSTALL_DIR="${PREFIX:-$TERMUX_PREFIX}/bin"
 elif [ -n "$MANAGED_EXISTING" ]; then
   INSTALL_DIR="${MANAGED_EXISTING%/*}"
   [ -w "$INSTALL_DIR" ] ||
@@ -103,9 +108,9 @@ success "Installed ${BINARY} ${TAG} to ${INSTALL_DIR}/${BINARY}"
 
 # Older Termux installs used ~/.local/bin. Remove that obsolete copy after the
 # new binary is safely installed in Termux's canonical PREFIX.
-if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
+if [ "$IS_TERMUX" -eq 1 ]; then
   LEGACY_TERMUX_BINARY="${HOME}/.local/bin/${BINARY}"
-  if [ -f "$LEGACY_TERMUX_BINARY" ]; then
+  if [ -e "$LEGACY_TERMUX_BINARY" ] || [ -L "$LEGACY_TERMUX_BINARY" ]; then
     rm -f "$LEGACY_TERMUX_BINARY"
     success "Removed old Termux copy at ${LEGACY_TERMUX_BINARY}"
   fi
