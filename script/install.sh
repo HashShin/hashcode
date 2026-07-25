@@ -101,6 +101,16 @@ mkdir -p "$INSTALL_DIR"
 mv "$TMP_BINARY" "${INSTALL_DIR}/${BINARY}"
 success "Installed ${BINARY} ${TAG} to ${INSTALL_DIR}/${BINARY}"
 
+# Older Termux installs used ~/.local/bin. Remove that obsolete copy after the
+# new binary is safely installed in Termux's canonical PREFIX.
+if [ -n "${TERMUX_VERSION:-}" ] || [ "${PREFIX:-}" = "/data/data/com.termux/files/usr" ]; then
+  LEGACY_TERMUX_BINARY="${HOME}/.local/bin/${BINARY}"
+  if [ -f "$LEGACY_TERMUX_BINARY" ]; then
+    rm -f "$LEGACY_TERMUX_BINARY"
+    success "Removed old Termux copy at ${LEGACY_TERMUX_BINARY}"
+  fi
+fi
+
 case ":${PATH}:" in
   *":${INSTALL_DIR}:"*) ;;
   *)
