@@ -106,17 +106,15 @@ mkdir -p "$INSTALL_DIR"
 mv "$TMP_BINARY" "${INSTALL_DIR}/${BINARY}"
 success "Installed ${BINARY} ${TAG} to ${INSTALL_DIR}/${BINARY}"
 
-# Older Termux installs used ~/.local/bin. Replace that obsolete copy with a
-# link to the canonical binary so an already-open shell with a cached command
-# path continues to work without opening a new terminal tab.
+# Older Termux installs used ~/.local/bin. Remove that obsolete copy after the
+# new binary is safely installed in Termux's canonical PREFIX.
 if [ "$IS_TERMUX" -eq 1 ]; then
   LEGACY_TERMUX_BINARY="${HOME}/.local/bin/${BINARY}"
   if [ -e "$LEGACY_TERMUX_BINARY" ] || [ -L "$LEGACY_TERMUX_BINARY" ]; then
     rm -f "$LEGACY_TERMUX_BINARY"
+    success "Removed old Termux copy at ${LEGACY_TERMUX_BINARY}"
   fi
-  mkdir -p "${HOME}/.local/bin"
-  ln -s "${INSTALL_DIR}/${BINARY}" "$LEGACY_TERMUX_BINARY"
-  success "Updated Termux command compatibility link"
+  warn "If Hashcode was already running in this shell, run: hash -r"
 fi
 
 case ":${PATH}:" in
